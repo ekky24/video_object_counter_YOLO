@@ -11,8 +11,12 @@ from shapely.geometry.point import Point
 from ultralytics import YOLO
 from ultralytics.utils.files import increment_path
 from ultralytics.utils.plotting import Annotator, colors
+import torch
+from datetime import datetime
+import sqlalchemy as db
+import pandas as pd
 
-
+from data.db_credentials import DB_CONFIG
 
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
@@ -39,7 +43,8 @@ def run(
         classes=None,
         line_thickness=2,
         region_thickness=2,
-        counter_accumulated=False
+        counter_accumulated=False,
+        capacity=10
 ):
     """
     Run Region counting on a video using YOLOv10 and ByteTrack.
@@ -62,13 +67,27 @@ def run(
         counter_accumulated (bool) : accumulation counter
     """
 
+    save_interval = 60
+    save_start_time = time.time()
+
     # Check source path
-    if not Path(source).exists():
-        raise FileNotFoundError(f"Source path '{source}' does not exist.")
+    if source == 'rtsp':
+        source = "rtsp://admin:KGMJLP@103.167.31.202:554/H.264"
+    
+    else:
+        if not Path(source).exists():
+            raise FileNotFoundError(f"Source path '{source}' does not exist.")
     
     # Setup Model
     model = YOLO(f"{weights}")
-    model.to("cuda") if device == "0" else model.to("cpu")
+    if torch.cuda.is_available():
+        print("GPU is available.")
+        device = torch.device('cuda')
+    else:
+        print("GPU is not available, using CPU.")
+        device = torch.device('cpu')
+
+    model.to(device)
 
     # Extract class names
     names = model.model.names
@@ -79,11 +98,19 @@ def run(
                                                                 cv2.CAP_PROP_FRAME_HEIGHT, 
                                                                 cv2.CAP_PROP_FPS
                                        ))
-    save_dir = increment_path(Path("counter_region_output") / "exp", exist_ok)
-    save_dir.mkdir(parents=True, exist_ok=True)
+
+    curr_ts = datetime.now()
+    str_curr_date = curr_ts.strftime("%Y%m%d")
+
+    # save_dir = f'/mnt/data/machine_learning/output/{str_curr_date}'
+    save_dir = f'output/visitor_counter/{str_curr_date}'
+    if not os.path.isdir(save_dir):
+        os.makedirs(save_dir)
+
     codec = "mp4v"
-    video_writer = cv2.VideoWriter(str(save_dir / f"{Path(source).stem}.mp4"),
-                        cv2.VideoWriter_fourcc(*codec), fps, (frame_w,frame_h))
+    str_curr_ts = curr_ts.strftime("%Y%m%d_%H%M%S")
+    video_writer = cv2.VideoWriter(f"{save_dir}/{str_curr_ts}.mp4",
+                cv2.VideoWriter_fourcc(*codec), fps, (frame_w,frame_h))
     
 
     # Iterate and analyze over video frames
@@ -92,6 +119,8 @@ def run(
     prev_time = 0
 
     while VideoCapture.isOpened():
+        save_curr_time = time.time()
+
         sucess, frame = VideoCapture.read()
         if not sucess:
             break
@@ -159,7 +188,40 @@ def run(
             )
             cv2.polylines(frame, [polygon_coords], isClosed=True, color=region_color, thickness=region_thickness)
         
-        
+        # save output and db
+        if save_curr_time - save_start_time >= save_interval:
+            updated_ts = datetime.now()
+            str_curr_ts = updated_ts.strftime("%Y%m%d_%H%M%S")
+
+            save_start_time = save_curr_time
+            video_writer.release()
+
+            if curr_ts.date() != updated_ts.date():
+                curr_ts = updated_ts
+                str_curr_date = curr_ts.strftime("%Y%m%d")
+                # save_dir = f'/mnt/data/machine_learning/output/{str_curr_date}'
+                save_dir = f'output/{str_curr_date}'
+                if not os.path.isdir(save_dir):
+                    os.makedirs(save_dir)
+
+            video_writer = cv2.VideoWriter(f"{save_dir}/{str_curr_ts}.mp4",
+                        cv2.VideoWriter_fourcc(*codec), fps, (frame_w,frame_h))
+
+            # save db
+            new_data = {
+                'current_occupancy': [],
+                'max_capacity': [],
+            }
+            new_data['current_occupancy'].append(region["counts"])
+            new_data['max_capacity'].append(capacity)
+            new_data_df = pd.DataFrame(new_data)
+
+            engine = db.create_engine(f"mysql+mysqlconnector://{DB_CONFIG['username']}:{DB_CONFIG['password']}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/cctv",echo=False)
+            new_data_df.to_sql('visitor_counter', con=engine, if_exists="append", index=False)
+            engine.dispose()
+
+        print(f"FPS : {fps:.2f}")
+
         if view_img:
             cv2.imshow("Crowd Counter POC", frame)
         
@@ -190,6 +252,7 @@ def parse_opt():
     parser.add_argument("--line-thickness", type=int, default=2, help="bounding box thickness")
     parser.add_argument("--region-thickness", type=int, default=4, help="Region thickness")
     parser.add_argument("--counter-accumulated", action="store_true", help="accumulated counter")
+    parser.add_argument("--capacity", type=int, default=10, help="Maximum capacity")
 
     return parser.parse_args()
 
