@@ -17,21 +17,12 @@ import sqlalchemy as db
 import pandas as pd
 
 from data.db_credentials import DB_CONFIG
+import config
 
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 current_region = None
-counting_region = [
-    {
-        "name": "Counting Region",
-        "polygon": Polygon([(440, 91), (510, 89), (465, 358), (217, 357)]),  # Polygon points
-        "counts": 0,
-        "draggin": False,
-        "region_color": (37, 255, 255), # BGR value
-        "text_color": (0, 0, 0) # Region text color
-    }
-]
 
 def run(
         weights="yolov10m.pt",
@@ -44,7 +35,7 @@ def run(
         line_thickness=2,
         region_thickness=2,
         counter_accumulated=False,
-        capacity=10
+        area=None
 ):
     """
     Run Region counting on a video using YOLOv10 and ByteTrack.
@@ -72,9 +63,26 @@ def run(
 
     # Check source path
     if source == 'rtsp':
-        source = "rtsp://admin:KGMJLP@103.167.31.202:554/H.264"
+        cctv_host = config.LOCATION_CONF[area]['host']
+        cctv_username = config.LOCATION_CONF[area]['username']
+        cctv_pass = config.LOCATION_CONF[area]['password']
+        cctv_area = config.LOCATION_CONF[area]['area']
+
+        source = f"rtsp://{cctv_username}:{cctv_pass}@{cctv_host}"
+
+        counting_region = config.LOCATION_CONF[area]['region']
     
     else:
+        counting_region = [
+            {
+                "name": "Counting Region",
+                "polygon": Polygon([(440, 91), (510, 89), (465, 358), (217, 357)]),  # Polygon points
+                "counts": 0,
+                "draggin": False,
+                "region_color": (37, 255, 255), # BGR value
+                "text_color": (0, 0, 0) # Region text color
+            }
+        ]
         if not Path(source).exists():
             raise FileNotFoundError(f"Source path '{source}' does not exist.")
     
@@ -102,8 +110,8 @@ def run(
     curr_ts = datetime.now()
     str_curr_date = curr_ts.strftime("%Y%m%d")
 
-    # save_dir = f'/mnt/data/machine_learning/output/{str_curr_date}'
-    save_dir = f'output/visitor_counter/{str_curr_date}'
+    # save_dir = f'/mnt/data/machine_learning/output/visitor_counter/{cctv_area}/{str_curr_date}'
+    save_dir = f'output/visitor_counter/{cctv_area}/{str_curr_date}'
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
 
@@ -199,8 +207,8 @@ def run(
             if curr_ts.date() != updated_ts.date():
                 curr_ts = updated_ts
                 str_curr_date = curr_ts.strftime("%Y%m%d")
-                # save_dir = f'/mnt/data/machine_learning/output/{str_curr_date}'
-                save_dir = f'output/{str_curr_date}'
+                # save_dir = f'/mnt/data/machine_learning/output/visitor_counter/{cctv_area}/{str_curr_date}'
+                save_dir = f'output/visitor_counter/{cctv_area}/{str_curr_date}'
                 if not os.path.isdir(save_dir):
                     os.makedirs(save_dir)
 
@@ -211,9 +219,13 @@ def run(
             new_data = {
                 'current_occupancy': [],
                 'max_capacity': [],
+                'area': [],
             }
-            new_data['current_occupancy'].append(region["counts"])
-            new_data['max_capacity'].append(capacity)
+            for i, region in enumerate(counting_region):
+                new_data['current_occupancy'].append(region["counts"])
+                new_data['max_capacity'].append(config.LOCATION_CONF[area]['max_capacity'][i])
+                new_data['area'].append(region["name"])
+
             new_data_df = pd.DataFrame(new_data)
 
             engine = db.create_engine(f"mysql+mysqlconnector://{DB_CONFIG['username']}:{DB_CONFIG['password']}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/cctv",echo=False)
@@ -252,7 +264,7 @@ def parse_opt():
     parser.add_argument("--line-thickness", type=int, default=2, help="bounding box thickness")
     parser.add_argument("--region-thickness", type=int, default=4, help="Region thickness")
     parser.add_argument("--counter-accumulated", action="store_true", help="accumulated counter")
-    parser.add_argument("--capacity", type=int, default=10, help="Maximum capacity")
+    parser.add_argument("--area", type=str, default="", help="CCTV location")
 
     return parser.parse_args()
 

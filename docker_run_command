@@ -1,1 +1,0 @@
-docker run --log-opt max-size=10m --log-opt max-file=3 --name visitor_counter -v /mnt/data/machine_learning/output/visitor_counter:/app/output/visitor_counter --gpus all --rm -it visitor_counter:v0.1 /bin/bash
