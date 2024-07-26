@@ -17,7 +17,7 @@ import sqlalchemy as db
 import pandas as pd
 
 from data.db_credentials import DB_CONFIG
-import config
+import config_visitor_counter
 
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
@@ -63,14 +63,14 @@ def run(
 
     # Check source path
     if source == 'rtsp':
-        cctv_host = config.LOCATION_CONF[area]['host']
-        cctv_username = config.LOCATION_CONF[area]['username']
-        cctv_pass = config.LOCATION_CONF[area]['password']
-        cctv_area = config.LOCATION_CONF[area]['area']
+        cctv_host = config_visitor_counter.LOCATION_CONF[area]['host']
+        cctv_username = config_visitor_counter.LOCATION_CONF[area]['username']
+        cctv_pass = config_visitor_counter.LOCATION_CONF[area]['password']
+        cctv_area = config_visitor_counter.LOCATION_CONF[area]['area']
 
         source = f"rtsp://{cctv_username}:{cctv_pass}@{cctv_host}"
 
-        counting_region = config.LOCATION_CONF[area]['region']
+        counting_region = config_visitor_counter.LOCATION_CONF[area]['region']
     
     else:
         counting_region = [
@@ -132,10 +132,10 @@ def run(
         save_curr_time = time.time()
 
         sucess, frame = VideoCapture.read()
-        frame = cv2.resize(frame, (frame_w, frame_h))
         if not sucess:
             break
-
+        
+        frame = cv2.resize(frame, (frame_w, frame_h))
         curr_time = time.time()
         fps = 1 / (curr_time - prev_time)
         prev_time = curr_time
@@ -226,7 +226,7 @@ def run(
             }
             for i, region in enumerate(counting_region):
                 new_data['current_occupancy'].append(region["counts"])
-                new_data['max_capacity'].append(config.LOCATION_CONF[area]['max_capacity'][i])
+                new_data['max_capacity'].append(config_visitor_counter.LOCATION_CONF[area]['max_capacity'][i])
                 new_data['area'].append(region["name"])
 
             new_data_df = pd.DataFrame(new_data)
