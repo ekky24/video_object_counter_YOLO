@@ -75,7 +75,7 @@ def run(
     else:
         counting_region = [
             {
-                "name": "Counting Region",
+                "name": "sol_1",
                 "polygon": Polygon([(440, 91), (510, 89), (465, 358), (217, 357)]),  # Polygon points
                 "counts": 0,
                 "draggin": False,
@@ -83,6 +83,7 @@ def run(
                 "text_color": (0, 0, 0) # Region text color
             }
         ]
+        cctv_area = 'sol'
         if not Path(source).exists():
             raise FileNotFoundError(f"Source path '{source}' does not exist.")
     
@@ -107,6 +108,7 @@ def run(
                                                                 cv2.CAP_PROP_FPS
                                        ))
 
+    frame_w, frame_h = 1280, 720
     curr_ts = datetime.now()
     str_curr_date = curr_ts.strftime("%Y%m%d")
 
@@ -130,6 +132,7 @@ def run(
         save_curr_time = time.time()
 
         sucess, frame = VideoCapture.read()
+        frame = cv2.resize(frame, (frame_w, frame_h))
         if not sucess:
             break
 
