@@ -20,6 +20,8 @@ from data.db_credentials import DB_CONFIG
 import config_people_moving
 
 import os
+import shutil
+
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 current_region = None
@@ -112,10 +114,11 @@ def run(
     curr_ts = datetime.now()
     str_curr_date = curr_ts.strftime("%Y%m%d")
 
-    # save_dir = f'/mnt/data/machine_learning/output/people_moving/{cctv_area}/{str_curr_date}'
-    save_dir = f'output/people_moving/{cctv_area}/{str_curr_date}'
+    # save_dir = f'output/people_moving/{cctv_area}/{str_curr_date}'
+    save_dir = f'output/people_moving/tmp/{cctv_area}/{str_curr_date}'
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
+        os.makedirs(save_dir.replace('/tmp', ''))
 
     codec = "mp4v"
     str_curr_ts = curr_ts.strftime("%Y%m%d_%H%M%S")
@@ -202,19 +205,25 @@ def run(
         
         # save output and db
         if save_curr_time - save_start_time >= save_interval:
+            source_vid_path = f"{save_dir}/{str_curr_ts}.mp4"
+            dest_vid_path = f"{save_dir.replace('/tmp', '')}/{str_curr_ts}.mp4"
+
             updated_ts = datetime.now()
             str_curr_ts = updated_ts.strftime("%Y%m%d_%H%M%S")
 
             save_start_time = save_curr_time
             video_writer.release()
 
+            # move file to final dir
+            shutil.move(source_vid_path, dest_vid_path)
+
             if curr_ts.date() != updated_ts.date():
                 curr_ts = updated_ts
                 str_curr_date = curr_ts.strftime("%Y%m%d")
-                # save_dir = f'/mnt/data/machine_learning/output/people_moving/{cctv_area}/{str_curr_date}'
-                save_dir = f'output/people_moving/{cctv_area}/{str_curr_date}'
+                save_dir = f'output/people_moving/tmp/{cctv_area}/{str_curr_date}'
                 if not os.path.isdir(save_dir):
                     os.makedirs(save_dir)
+                    os.makedirs(save_dir.replace('/tmp', ''))
 
             video_writer = cv2.VideoWriter(f"{save_dir}/{str_curr_ts}.mp4",
                         cv2.VideoWriter_fourcc(*codec), fps, (frame_w,frame_h))
@@ -252,6 +261,16 @@ def run(
     video_writer.release()
     VideoCapture.release()
     cv2.destroyAllWindows()
+
+    # clearing tmp
+    try:
+        os.remove(f"{save_dir}/{str_curr_ts}.mp4")
+    except FileNotFoundError:
+        print(f"File not found.")
+    except PermissionError:
+        print(f"Permission denied to delete.")
+    except Exception as e:
+        print(f"Error occurred while trying to delete: {e}")
 
 def parse_opt():
     """Parse command line arguments."""
