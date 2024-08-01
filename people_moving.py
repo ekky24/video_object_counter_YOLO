@@ -141,6 +141,7 @@ def run(
 
         sucess, frame = VideoCapture.read()
         if not sucess:
+            print('INFO: Video read failed')
             break
         
         frame = cv2.resize(frame, (frame_w, frame_h))
@@ -262,6 +263,8 @@ def run(
             
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
+
+        time.sleep(0.03)
         
     video_writer.release()
     VideoCapture.release()
