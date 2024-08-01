@@ -1,3 +1,9 @@
+import sys
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+previous_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
+sys.path.append(previous_dir)
+
 import argparse
 import time
 from collections import defaultdict
@@ -17,9 +23,8 @@ import sqlalchemy as db
 import pandas as pd
 
 from data.db_credentials import DB_CONFIG
-import config_visitor_counter
+import dist.config_visitor_counter as config_visitor_counter
 
-import os
 import shutil
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
