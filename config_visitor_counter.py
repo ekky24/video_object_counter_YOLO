@@ -2,9 +2,9 @@ from shapely.geometry import Polygon
 
 LOCATION_CONF = {
     'sol': {
-        'host': '103.167.31.202:554/H.264',
+        'host': '182.0.23.170:554/ch1/main',
         'username': 'admin',
-        'password': 'KGMJLP',
+        'password': 'FNZLLZ',
         'area': 'sol',
         'max_capacity': [10],
         'region': [

@@ -1,2 +1,6 @@
 /.git
 /output
+config_people_moving.py
+config_visitor_counter.py
+people_moving.py
+visitor_counter.py
