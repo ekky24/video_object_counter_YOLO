@@ -1,9 +1,4 @@
 #!/bin/bash
-pyarmor gen config_people_moving.py
-pyarmor gen people_moving.py
-rm -f config_people_moving.py
-rm -f people_moving.py
-
 NV="v0.3"
 docker build -f Dockerfile_people_moving -t people_moving:$NV .
 docker rm people_moving

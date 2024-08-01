@@ -1,9 +1,4 @@
 #!/bin/bash
-pyarmor gen config_visitor_counter.py
-pyarmor gen visitor_counter.py
-rm -f config_visitor_counter.py
-rm -f visitor_counter.py
-
 NV="v0.6"
 docker build -f Dockerfile_visitor_counter -t visitor_counter:$NV .
 docker rm visitor_counter
