@@ -264,7 +264,7 @@ def run(
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
 
-        time.sleep(0.03)
+        time.sleep(0.05)
         
     video_writer.release()
     VideoCapture.release()
