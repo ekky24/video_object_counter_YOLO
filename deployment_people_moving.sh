@@ -1,5 +1,5 @@
 #!/bin/bash
-NV="v1.1"
+NV="v1.2"
 docker build -f Dockerfile_people_moving -t people_moving:$NV .
 
 
