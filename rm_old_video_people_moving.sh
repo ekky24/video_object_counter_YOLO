@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Format: yyyymmdd ex: 20240803
-RM_DATE="20240802"
+RM_DATE="20240803"
 
 rm -rf /mnt/data/machine_learning/output/people_moving/toilet/$RM_DATE
 rm -rf /mnt/data/machine_learning/output/people_moving/cig/$RM_DATE
