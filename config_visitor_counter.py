@@ -10,7 +10,7 @@ LOCATION_CONF = {
         'region': [
             {
                 "name": "tsu_1",
-                "polygon": Polygon([(0, 0), (0, 720), (1270, 720), (1270, 0)]),  # Polygon points
+                "polygon": Polygon([(353, 662), (1180, 355), (711, 148), (174, 245)]),  # Polygon points
                 "counts": 0,
                 "draggin": False,
                 "region_color": (37, 255, 255), # BGR value
@@ -27,7 +27,7 @@ LOCATION_CONF = {
         'region': [
             {
                 "name": "mcd_1",
-                "polygon": Polygon([(0, 0), (0, 720), (1270, 720), (1270, 0)]),  # Polygon points
+                "polygon": Polygon([(293, 325), (521, 409), (746, 315), (568, 265)]),  # Polygon points
                 "counts": 0,
                 "draggin": False,
                 "region_color": (37, 255, 255), # BGR value
@@ -44,7 +44,8 @@ LOCATION_CONF = {
         'region': [
             {
                 "name": "masjid_1",
-                "polygon": Polygon([(0, 0), (0, 720), (1270, 720), (1270, 0)]),  # Polygon points
+                "polygon": Polygon([(351, 168), (372, 206), (412, 489), (987, 463), \
+                    (650, 201), (466, 156)]),  # Polygon points
                 "counts": 0,
                 "draggin": False,
                 "region_color": (37, 255, 255), # BGR value
@@ -61,7 +62,7 @@ LOCATION_CONF = {
         'region': [
             {
                 "name": "sol_1",
-                "polygon": Polygon([(0, 0), (0, 720), (1270, 720), (1270, 0)]),  # Polygon points
+                "polygon": Polygon([(77, 534), (437, 702), (722, 702), (784, 492), (459, 363)]),  # Polygon points
                 "counts": 0,
                 "draggin": False,
                 "region_color": (37, 255, 255), # BGR value
@@ -78,7 +79,7 @@ LOCATION_CONF = {
         'region': [
             {
                 "name": "spklu_1",
-                "polygon": Polygon([(0, 0), (0, 720), (1270, 720), (1270, 0)]),  # Polygon points
+                "polygon": Polygon([(125, 366), (527, 680), (1201, 444), (843, 278)]),  # Polygon points
                 "counts": 0,
                 "draggin": False,
                 "region_color": (37, 255, 255), # BGR value
@@ -95,7 +96,7 @@ LOCATION_CONF = {
         'region': [
             {
                 "name": "cig_1",
-                "polygon": Polygon([(0, 0), (0, 720), (1270, 720), (1270, 0)]),  # Polygon points
+                "polygon": Polygon([(149, 312), (838, 464), (887, 340), (269, 238)]),  # Polygon points
                 "counts": 0,
                 "draggin": False,
                 "region_color": (37, 255, 255), # BGR value
@@ -112,7 +113,8 @@ LOCATION_CONF = {
         'region': [
             {
                 "name": "stb_1",
-                "polygon": Polygon([(0, 0), (0, 720), (1270, 720), (1270, 0)]),  # Polygon points
+                "polygon": Polygon([(111, 261), (61, 383), (205, 429), (173, 670), \
+                    (1179, 535), (647, 279)]),  # Polygon points
                 "counts": 0,
                 "draggin": False,
                 "region_color": (37, 255, 255), # BGR value
@@ -129,7 +131,8 @@ LOCATION_CONF = {
         'region': [
             {
                 "name": "toilet_1",
-                "polygon": Polygon([(0, 0), (0, 720), (1270, 720), (1270, 0)]),  # Polygon points
+                "polygon": Polygon([(359, 188), (185, 323), (372, 333), (349, 465), \
+                    (1069, 409), (855, 200)]),  # Polygon points
                 "counts": 0,
                 "draggin": False,
                 "region_color": (37, 255, 255), # BGR value
