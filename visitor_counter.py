@@ -64,19 +64,18 @@ def run(
         counter_accumulated (bool) : accumulation counter
     """
 
-    save_interval = 60
-    save_start_time = time.time()
+    save_interval = 30
 
     # Check source path
     if source == 'rtsp':
-        cctv_host = config_visitor_counter.LOCATION_CONF[area]['host']
-        cctv_username = config_visitor_counter.LOCATION_CONF[area]['username']
-        cctv_pass = config_visitor_counter.LOCATION_CONF[area]['password']
-        cctv_area = config_visitor_counter.LOCATION_CONF[area]['area']
+        cctv_host = config_people_moving.LOCATION_CONF[area]['host']
+        cctv_username = config_people_moving.LOCATION_CONF[area]['username']
+        cctv_pass = config_people_moving.LOCATION_CONF[area]['password']
+        cctv_area = config_people_moving.LOCATION_CONF[area]['area']
 
         source = f"rtsp://{cctv_username}:{cctv_pass}@{cctv_host}"
 
-        counting_region = config_visitor_counter.LOCATION_CONF[area]['region']
+        counting_region = config_people_moving.LOCATION_CONF[area]['region']
     
     else:
         counting_region = [
@@ -109,6 +108,7 @@ def run(
 
     # Video Setup
     VideoCapture = cv2.VideoCapture(source)
+    VideoCapture.set(cv2.CAP_PROP_FPS, config.FRAME_RATE)
     frame_w, frame_h, fps = (int(VideoCapture.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, 
                                                                 cv2.CAP_PROP_FRAME_HEIGHT, 
                                                                 cv2.CAP_PROP_FPS
@@ -118,8 +118,8 @@ def run(
     curr_ts = datetime.now()
     str_curr_date = curr_ts.strftime("%Y%m%d")
 
-    # save_dir = f'output/visitor_counter/{cctv_area}/{str_curr_date}'
-    save_dir = f'output/visitor_counter/tmp/{cctv_area}/{str_curr_date}'
+    # save_dir = f'output/people_moving/{cctv_area}/{str_curr_date}'
+    save_dir = f'output/people_moving/tmp/{cctv_area}/{str_curr_date}'
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
         os.makedirs(save_dir.replace('/tmp', ''))
@@ -134,15 +134,18 @@ def run(
     track_history = defaultdict(list)
     count_ids = []
     prev_time = 0
+    save_start_time = time.time()
 
     while VideoCapture.isOpened():
         save_curr_time = time.time()
 
         sucess, frame = VideoCapture.read()
         if not sucess:
+            print('INFO: Video read failed')
             break
         
         frame = cv2.resize(frame, (frame_w, frame_h))
+
         curr_time = time.time()
         fps = 1 / (curr_time - prev_time)
         prev_time = curr_time
@@ -217,13 +220,17 @@ def run(
             save_start_time = save_curr_time
             video_writer.release()
 
-            # move file to final dir
-            shutil.move(source_vid_path, dest_vid_path)
+            # check if file video is corrupt
+            if os.path.exists(source_vid_path):
+                file_size = os.path.getsize(source_vid_path)
+                if file_size > config.FILE_SIZE_THRESHOLD * 1024:
+                    # move file to final dir
+                    shutil.move(source_vid_path, dest_vid_path)
 
             if curr_ts.date() != updated_ts.date():
                 curr_ts = updated_ts
                 str_curr_date = curr_ts.strftime("%Y%m%d")
-                save_dir = f'output/visitor_counter/tmp/{cctv_area}/{str_curr_date}'
+                save_dir = f'output/people_moving/tmp/{cctv_area}/{str_curr_date}'
                 if not os.path.isdir(save_dir):
                     os.makedirs(save_dir)
                     os.makedirs(save_dir.replace('/tmp', ''))

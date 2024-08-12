@@ -130,3 +130,6 @@ LOCATION_CONF = {
         ]
     },
 }
+
+FILE_SIZE_THRESHOLD = 800
+FRAME_RATE = 12
