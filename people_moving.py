@@ -109,7 +109,7 @@ def run(
 
     # Video Setup
     VideoCapture = cv2.VideoCapture(source)
-    VideoCapture.set(cv2.CAP_PROP_FPS, config.FRAME_RATE)
+    VideoCapture.set(cv2.CAP_PROP_FPS, config_people_moving.FRAME_RATE)
     frame_w, frame_h, fps = (int(VideoCapture.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, 
                                                                 cv2.CAP_PROP_FRAME_HEIGHT, 
                                                                 cv2.CAP_PROP_FPS
@@ -224,7 +224,7 @@ def run(
             # check if file video is corrupt
             if os.path.exists(source_vid_path):
                 file_size = os.path.getsize(source_vid_path)
-                if file_size > config.FILE_SIZE_THRESHOLD * 1024:
+                if file_size > config_people_moving.FILE_SIZE_THRESHOLD * 1024:
                     # move file to final dir
                     shutil.move(source_vid_path, dest_vid_path)
 
