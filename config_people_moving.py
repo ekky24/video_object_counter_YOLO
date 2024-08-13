@@ -9,8 +9,8 @@ LOCATION_CONF = {
         'region': [
             {
                 "name": "mcd_1",
-                "polygon": Polygon([(535, 316), (0, 471), (4, 713), (135, 713), \
-                    (519, 521), (720, 342)]),  # Polygon points
+                "polygon": Polygon([(414, 279), (2, 377), (2, 706), (156, 708), \
+                    (495, 538), (720, 338)]),  # Polygon points
                 "counts": 0,
                 "draggin": False,
                 "region_color": (37, 255, 255), # BGR value
@@ -18,8 +18,8 @@ LOCATION_CONF = {
             },
             {
                 "name": "mcd_2",
-                "polygon": Polygon([(731, 338), (808, 536), (880, 705), (1265, 703), \
-                    (1270, 637), (994, 381)]),  # Polygon points
+                "polygon": Polygon([(727, 340), (880, 708), (1263, 706), (1270, 557), \
+                    (959, 343)]),  # Polygon points
                 "counts": 0,
                 "draggin": False,
                 "region_color": (37, 255, 255), # BGR value
