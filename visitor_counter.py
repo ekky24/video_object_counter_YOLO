@@ -30,6 +30,34 @@ os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 current_region = None
 
+def cleaning(VideoCapture, cv2, save_dir, str_curr_ts):
+    VideoCapture.release()
+    cv2.destroyAllWindows()
+
+    # clearing tmp
+    try:
+        os.remove(f"{save_dir}/{str_curr_ts}.mp4")
+    except FileNotFoundError:
+        print(f"File not found.")
+    except PermissionError:
+        print(f"Permission denied to delete.")
+    except Exception as e:
+        print(f"Error occurred while trying to delete: {e}")
+
+def connect_rtsp(source, codec, frame_w, frame_h, save_dir, str_curr_ts):
+    # Video Setup
+    VideoCapture = cv2.VideoCapture(source)
+    VideoCapture.set(cv2.CAP_PROP_FPS, config_visitor_counter.FRAME_RATE)
+    frame_w_0, frame_h_0, fps = (int(VideoCapture.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, 
+                                                                cv2.CAP_PROP_FRAME_HEIGHT, 
+                                                                cv2.CAP_PROP_FPS
+                                       ))
+
+    video_writer = cv2.VideoWriter(f"{save_dir}/{str_curr_ts}.mp4",
+                cv2.VideoWriter_fourcc(*codec), 12, (frame_w,frame_h))
+    
+    return VideoCapture, video_writer
+
 def run(
         weights="yolov10m.pt",
         source=None,
@@ -64,7 +92,22 @@ def run(
         counter_accumulated (bool) : accumulation counter
     """
 
-    save_interval = 30
+    save_interval = 10
+    rtsp_server_url = f"rtsp://localhost:8554/visitor_counter/{area}"
+    ffmpeg_command = [
+        'ffmpeg',
+        '-y',  # Overwrite output files
+        '-f', 'rawvideo',  # Input format
+        '-vcodec', 'rawvideo',
+        '-pix_fmt', 'bgr24',  # Pixel format
+        '-s', '640x360',  # Frame size
+        '-r', '12',  # Frame rate
+        '-i', '-',  # Input from stdin
+        '-c:v', 'libx264',  # Video codec
+        '-pix_fmt', 'yuv420p',  # Output pixel format
+        '-f', 'rtsp',  # Output format
+        rtsp_server_url  # Output URL
+    ]
 
     # Check source path
     if source == 'rtsp':
@@ -106,35 +149,26 @@ def run(
     # Extract class names
     names = model.model.names
 
-    # Video Setup
-    VideoCapture = cv2.VideoCapture(source)
-    VideoCapture.set(cv2.CAP_PROP_FPS, config_visitor_counter.FRAME_RATE)
-    frame_w, frame_h, fps = (int(VideoCapture.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, 
-                                                                cv2.CAP_PROP_FRAME_HEIGHT, 
-                                                                cv2.CAP_PROP_FPS
-                                       ))
-
     frame_w, frame_h = 1280, 720
+    codec = "mp4v"
     curr_ts = datetime.now()
     str_curr_date = curr_ts.strftime("%Y%m%d")
+    str_curr_ts = curr_ts.strftime("%Y%m%d_%H%M%S")
 
     # save_dir = f'output/visitor_counter/{cctv_area}/{str_curr_date}'
     save_dir = f'output/visitor_counter/tmp/{cctv_area}/{str_curr_date}'
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
         os.makedirs(save_dir.replace('/tmp', ''))
-
-    codec = "mp4v"
-    str_curr_ts = curr_ts.strftime("%Y%m%d_%H%M%S")
-    video_writer = cv2.VideoWriter(f"{save_dir}/{str_curr_ts}.mp4",
-                cv2.VideoWriter_fourcc(*codec), fps, (frame_w,frame_h))
     
+    VideoCapture, video_writer = connect_rtsp(source, codec, frame_w, frame_h, save_dir, str_curr_ts)
 
     # Iterate and analyze over video frames
     track_history = defaultdict(list)
     count_ids = []
     prev_time = 0
     save_start_time = time.time()
+    process = subprocess.Popen(ffmpeg_command, stdin=subprocess.PIPE)
 
     while VideoCapture.isOpened():
         save_curr_time = time.time()
@@ -142,7 +176,12 @@ def run(
         sucess, frame = VideoCapture.read()
         if not sucess:
             print('INFO: Video read failed')
-            break
+
+            # reconnecting and cleaning
+            cleaning(VideoCapture, cv2, save_dir, str_curr_ts)
+            VideoCapture, video_writer = connect_rtsp(source, codec, frame_w, frame_h, save_dir, str_curr_ts)
+
+            continue
         
         frame = cv2.resize(frame, (frame_w, frame_h))
 
@@ -257,6 +296,10 @@ def run(
 
         print(f"FPS : {fps:.2f}")
 
+        # Send to RTSP Stream 
+        frame_resize = cv2.resize(frame, (640, 360))
+        process.stdin.write(frame_resize.tobytes())
+
         if view_img:
             cv2.imshow("Crowd Counter POC", frame)
         
@@ -266,23 +309,15 @@ def run(
         if not counter_accumulated:
             for region in counting_region: # Reinitialize counter 
                 region["counts"] = 0
-            
+
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
-        
-    video_writer.release()
-    VideoCapture.release()
-    cv2.destroyAllWindows()
 
-    # clearing tmp
-    try:
-        os.remove(f"{save_dir}/{str_curr_ts}.mp4")
-    except FileNotFoundError:
-        print(f"File not found.")
-    except PermissionError:
-        print(f"Permission denied to delete.")
-    except Exception as e:
-        print(f"Error occurred while trying to delete: {e}")
+    cleaning(VideoCapture, cv2, save_dir, str_curr_ts)
+    video_writer.release()
+
+    process.stdin.close()
+    process.wait()
 
 def parse_opt():
     """Parse command line arguments."""
