@@ -44,8 +44,8 @@ LOCATION_CONF = {
         'region': [
             {
                 "name": "masjid_1",
-                "polygon": Polygon([(351, 168), (372, 206), (412, 489), (987, 463), \
-                    (650, 201), (466, 156)]),  # Polygon points
+                "polygon": Polygon([(362, 61), (165, 115), (0, 687), (1265, 316), \
+                    (797, 106)]),  # Polygon points
                 "counts": 0,
                 "draggin": False,
                 "region_color": (37, 255, 255), # BGR value

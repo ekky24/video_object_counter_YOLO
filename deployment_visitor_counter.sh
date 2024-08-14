@@ -1,5 +1,5 @@
 #!/bin/bash
-NV="v2.0"
+NV="v2.1"
 docker build -f Dockerfile_visitor_counter -t visitor_counter:$NV .
 
 
@@ -18,10 +18,10 @@ docker stop visitor_counter_masjid
 docker rm visitor_counter_masjid
 docker run --memory="2000m" --network="host" --log-opt max-size=10m --log-opt max-file=3 -e CCTV_AREA="masjid" --name visitor_counter_masjid -v /mnt/nvme2n1/machine_learning/output/visitor_counter:/app/output/visitor_counter --gpus all -d --restart unless-stopped visitor_counter:$NV
 
-# Solaria
-docker stop visitor_counter_sol
-docker rm visitor_counter_sol
-docker run --memory="2000m" --network="host" --log-opt max-size=10m --log-opt max-file=3 -e CCTV_AREA="sol" --name visitor_counter_sol -v /mnt/nvme2n1/machine_learning/output/visitor_counter:/app/output/visitor_counter --gpus all -d --restart unless-stopped visitor_counter:$NV
+# # Solaria
+# docker stop visitor_counter_sol
+# docker rm visitor_counter_sol
+# docker run --memory="2000m" --network="host" --log-opt max-size=10m --log-opt max-file=3 -e CCTV_AREA="sol" --name visitor_counter_sol -v /mnt/nvme2n1/machine_learning/output/visitor_counter:/app/output/visitor_counter --gpus all -d --restart unless-stopped visitor_counter:$NV
 
 # # SPKLU
 # docker stop visitor_counter_spklu

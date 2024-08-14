@@ -43,7 +43,7 @@ def click_event(event, x, y, flags, params):
 if __name__=="__main__": 
   
     # reading the image 
-    source = "rtsp://admin:WCMWNA@182.0.20.72:554/ch1/main"
+    source = "rtsp://admin:XNJELA@182.0.23.101:554/ch2/main"
     cv2.namedWindow("image", cv2.WINDOW_NORMAL) 
     frame_w, frame_h = 1280,720
 
