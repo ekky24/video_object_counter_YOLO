@@ -21,6 +21,7 @@ import torch
 from datetime import datetime
 import sqlalchemy as db
 import pandas as pd
+import subprocess
 
 from data.db_credentials import DB_CONFIG
 import dist.config_people_moving as config_people_moving
@@ -162,15 +163,14 @@ def run(
         os.makedirs(save_dir)
         os.makedirs(save_dir.replace('/tmp', ''))
 
-    video_writer = cv2.VideoWriter(f"{save_dir}/{str_curr_ts}.mp4",
-                cv2.VideoWriter_fourcc(*codec), fps, (frame_w,frame_h))
+    VideoCapture, video_writer = connect_rtsp(source, codec, frame_w, frame_h, save_dir, str_curr_ts)
     
-
     # Iterate and analyze over video frames
     track_history = defaultdict(list)
     count_ids = []
     prev_time = 0
     save_start_time = time.time()
+    process = subprocess.Popen(ffmpeg_command, stdin=subprocess.PIPE)
 
     while VideoCapture.isOpened():
         save_curr_time = time.time()
@@ -178,7 +178,12 @@ def run(
         sucess, frame = VideoCapture.read()
         if not sucess:
             print('INFO: Video read failed')
-            break
+
+            # reconnecting and cleaning
+            cleaning(VideoCapture, cv2, save_dir, str_curr_ts)
+            VideoCapture, video_writer = connect_rtsp(source, codec, frame_w, frame_h, save_dir, str_curr_ts)
+
+            continue
         
         frame = cv2.resize(frame, (frame_w, frame_h))
 
@@ -291,6 +296,10 @@ def run(
 
         print(f"FPS : {fps:.2f}")
 
+        # Send to RTSP Stream 
+        frame_resize = cv2.resize(frame, (640, 360))
+        process.stdin.write(frame_resize.tobytes())
+
         if view_img:
             cv2.imshow("Crowd Counter POC", frame)
         
@@ -303,20 +312,12 @@ def run(
             
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
-        
-    video_writer.release()
-    VideoCapture.release()
-    cv2.destroyAllWindows()
 
-    # clearing tmp
-    try:
-        os.remove(f"{save_dir}/{str_curr_ts}.mp4")
-    except FileNotFoundError:
-        print(f"File not found.")
-    except PermissionError:
-        print(f"Permission denied to delete.")
-    except Exception as e:
-        print(f"Error occurred while trying to delete: {e}")
+    cleaning(VideoCapture, cv2, save_dir, str_curr_ts)
+    video_writer.release()
+
+    process.stdin.close()
+    process.wait()   
 
 def parse_opt():
     """Parse command line arguments."""

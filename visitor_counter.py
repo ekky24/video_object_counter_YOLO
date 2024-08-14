@@ -21,6 +21,7 @@ import torch
 from datetime import datetime
 import sqlalchemy as db
 import pandas as pd
+import subprocess
 
 from data.db_credentials import DB_CONFIG
 import dist.config_visitor_counter as config_visitor_counter
