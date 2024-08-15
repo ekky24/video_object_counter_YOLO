@@ -171,7 +171,7 @@ def run(
     save_start_time = time.time()
     process = subprocess.Popen(ffmpeg_command, stdin=subprocess.PIPE)
 
-    while VideoCapture.isOpened():
+    while True:
         save_curr_time = time.time()
 
         sucess, frame = VideoCapture.read()
