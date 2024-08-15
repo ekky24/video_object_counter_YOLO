@@ -31,7 +31,7 @@ LOCATION_CONF = {
         'host': '182.0.23.101:554/ch2/main',
         'username': 'admin',
         'password': 'XNJELA',
-        'area': 'masjid',
+        'area': 'toilet',
         'region': [
             {
                 "name": "toilet_1",
@@ -57,3 +57,4 @@ LOCATION_CONF = {
 
 FILE_SIZE_THRESHOLD = 500
 FRAME_RATE = 12
+TIMEZONE = 'Asia/Jakarta'

@@ -5,6 +5,7 @@ import config_people_moving
 import numpy as np
 from shapely.geometry import Polygon
 from shapely.geometry.point import Point
+from datetime import datetime
   
 def click_event(event, x, y, flags, params): 
   
@@ -65,6 +66,9 @@ if __name__=="__main__":
             break
         
         frame = cv2.resize(frame, (frame_w, frame_h))
+
+        cv2.rectangle(frame, (55, 682), (427, 712), (255, 255, 255), -1)
+        cv2.putText(frame, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), (56, 709), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 1, cv2.LINE_AA)
 
         # Draw regions (Polygons/Rectangles)
         for region in counting_region:

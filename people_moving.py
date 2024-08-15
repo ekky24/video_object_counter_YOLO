@@ -5,6 +5,7 @@ previous_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
 sys.path.append(previous_dir)
 
 import argparse
+import pytz
 import time
 from collections import defaultdict
 from pathlib import Path
@@ -110,6 +111,7 @@ def run(
         '-f', 'rtsp',  # Output format
         rtsp_server_url  # Output URL
     ]
+    timezone = pytz.timezone(config.TIMEZONE)
 
     # Check source path
     if source == 'rtsp':
@@ -153,7 +155,7 @@ def run(
 
     frame_w, frame_h = 1280, 720
     codec = "mp4v"
-    curr_ts = datetime.now()
+    curr_ts = datetime.now(timezone)
     str_curr_date = curr_ts.strftime("%Y%m%d")
     str_curr_ts = curr_ts.strftime("%Y%m%d_%H%M%S")
 
@@ -190,7 +192,9 @@ def run(
         curr_time = time.time()
         fps = 1 / (curr_time - prev_time)
         prev_time = curr_time
-        cv2.putText(frame, f"{fps:.2f} fps", (7, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (100, 255, 0), 1, cv2.LINE_AA)
+
+        cv2.rectangle(frame, (55, 682), (427, 712), (255, 255, 255), -1)
+        cv2.putText(frame, datetime.now(timezone).strftime("%Y-%m-%d %H:%M:%S"), (56, 709), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 1, cv2.LINE_AA)
 
         # Extract the results
         results = model.track(frame, persist=True, classes=classes)
@@ -255,7 +259,7 @@ def run(
             source_vid_path = f"{save_dir}/{str_curr_ts}.mp4"
             dest_vid_path = f"{save_dir.replace('/tmp', '')}/{str_curr_ts}.mp4"
 
-            updated_ts = datetime.now()
+            updated_ts = datetime.now(timezone)
             str_curr_ts = updated_ts.strftime("%Y%m%d_%H%M%S")
 
             save_start_time = save_curr_time
