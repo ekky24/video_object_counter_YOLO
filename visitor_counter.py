@@ -110,7 +110,7 @@ def run(
         '-f', 'rtsp',  # Output format
         rtsp_server_url  # Output URL
     ]
-    timezone = pytz.timezone(config.TIMEZONE)
+    timezone = pytz.timezone(config_visitor_counter.TIMEZONE)
 
     # Check source path
     if source == 'rtsp':
