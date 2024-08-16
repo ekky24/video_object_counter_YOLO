@@ -33,33 +33,16 @@ os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 current_region = None
 
-def cleaning(VideoCapture, cv2, save_dir, str_curr_ts):
+def cleaning(VideoCapture, cv2):
     VideoCapture.release()
     cv2.destroyAllWindows()
 
-    # clearing tmp
-    try:
-        os.remove(f"{save_dir}/{str_curr_ts}.mp4")
-    except FileNotFoundError:
-        print(f"File not found.")
-    except PermissionError:
-        print(f"Permission denied to delete.")
-    except Exception as e:
-        print(f"Error occurred while trying to delete: {e}")
-
-def connect_rtsp(source, codec, frame_w, frame_h, save_dir, str_curr_ts):
+def connect_rtsp(source):
     # Video Setup
     VideoCapture = cv2.VideoCapture(source)
     VideoCapture.set(cv2.CAP_PROP_FPS, config_people_moving.FRAME_RATE)
-    frame_w_0, frame_h_0, fps = (int(VideoCapture.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, 
-                                                                cv2.CAP_PROP_FRAME_HEIGHT, 
-                                                                cv2.CAP_PROP_FPS
-                                       ))
-
-    video_writer = cv2.VideoWriter(f"{save_dir}/{str_curr_ts}.mp4",
-                cv2.VideoWriter_fourcc(*codec), 12, (frame_w,frame_h))
     
-    return VideoCapture, video_writer
+    return VideoCapture
 
 def run(
         weights="yolov10m.pt",
@@ -165,7 +148,7 @@ def run(
         os.makedirs(save_dir)
         os.makedirs(save_dir.replace('/tmp', ''))
 
-    VideoCapture, video_writer = connect_rtsp(source, codec, frame_w, frame_h, save_dir, str_curr_ts)
+    VideoCapture = connect_rtsp(source)
     
     # Iterate and analyze over video frames
     track_history = defaultdict(list)
@@ -182,8 +165,8 @@ def run(
             print('INFO: Video read failed')
 
             # reconnecting and cleaning
-            cleaning(VideoCapture, cv2, save_dir, str_curr_ts)
-            VideoCapture, video_writer = connect_rtsp(source, codec, frame_w, frame_h, save_dir, str_curr_ts)
+            cleaning(VideoCapture, cv2)
+            VideoCapture = connect_rtsp(source)
 
             continue
         
@@ -254,35 +237,7 @@ def run(
             )
             cv2.polylines(frame, [polygon_coords], isClosed=True, color=region_color, thickness=region_thickness)
         
-        # save output and db
         if save_curr_time - save_start_time >= save_interval:
-            source_vid_path = f"{save_dir}/{str_curr_ts}.mp4"
-            dest_vid_path = f"{save_dir.replace('/tmp', '')}/{str_curr_ts}.mp4"
-
-            updated_ts = datetime.now(timezone)
-            str_curr_ts = updated_ts.strftime("%Y%m%d_%H%M%S")
-
-            save_start_time = save_curr_time
-            video_writer.release()
-
-            # check if file video is corrupt
-            if os.path.exists(source_vid_path):
-                file_size = os.path.getsize(source_vid_path)
-                if file_size > config_people_moving.FILE_SIZE_THRESHOLD * 1024:
-                    # move file to final dir
-                    shutil.move(source_vid_path, dest_vid_path)
-
-            if curr_ts.date() != updated_ts.date():
-                curr_ts = updated_ts
-                str_curr_date = curr_ts.strftime("%Y%m%d")
-                save_dir = f'output/people_moving/tmp/{cctv_area}/{str_curr_date}'
-                if not os.path.isdir(save_dir):
-                    os.makedirs(save_dir)
-                    os.makedirs(save_dir.replace('/tmp', ''))
-
-            video_writer = cv2.VideoWriter(f"{save_dir}/{str_curr_ts}.mp4",
-                        cv2.VideoWriter_fourcc(*codec), fps, (frame_w,frame_h))
-
             # save db
             new_data = {
                 'count': [],
@@ -307,9 +262,6 @@ def run(
         if view_img:
             cv2.imshow("Crowd Counter POC", frame)
         
-        if save_img:
-            video_writer.write(frame)
-        
         if not counter_accumulated:
             for region in counting_region: # Reinitialize counter 
                 region["counts"] = 0
@@ -317,8 +269,7 @@ def run(
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
 
-    cleaning(VideoCapture, cv2, save_dir, str_curr_ts)
-    video_writer.release()
+    cleaning(VideoCapture, cv2)
 
     process.stdin.close()
     process.wait()   
