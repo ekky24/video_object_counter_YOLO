@@ -48,7 +48,7 @@ if __name__=="__main__":
   
     # reading the image 
     source = "rtsp://admin:XNJELA@182.0.23.101:554/ch2/main"
-    pred_type = 'people_moving'
+    pred_type = 'visitor_counter'
     area = 'toilet'
 
     if pred_type == 'people_moving':
