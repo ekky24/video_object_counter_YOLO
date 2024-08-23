@@ -245,6 +245,8 @@ def run(
             cv2.polylines(frame, [polygon_coords], isClosed=True, color=region_color, thickness=region_thickness)
         
         if save_curr_time - save_start_time >= save_interval:
+            save_start_time = save_curr_time
+            
             # save db
             new_data = {
                 'current_occupancy': [],

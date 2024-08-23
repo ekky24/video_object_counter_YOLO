@@ -1,5 +1,5 @@
 #!/bin/bash
-NV="v2.5"
+NV="v2.6"
 docker build -f Dockerfile_visitor_counter -t visitor_counter:$NV .
 
 
