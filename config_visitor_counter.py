@@ -123,9 +123,9 @@ LOCATION_CONF = {
     #     ]
     # },
     'toilet': {
-        'host': '182.0.21.152:554/ch2/main',
+        'host': '182.0.23.101:554/ch2/main',
         'username': 'admin',
-        'password': 'IMGTDW',
+        'password': 'XNJELA',
         'area': 'toilet',
         'max_capacity': [10, 10],
         'region': [
