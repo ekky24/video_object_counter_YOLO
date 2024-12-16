@@ -47,9 +47,9 @@ def click_event(event, x, y, flags, params):
 if __name__=="__main__": 
   
     # reading the image 
-    source = "rtsp://admin:XNJELA@182.0.23.101:554/ch2/main"
-    pred_type = 'visitor_counter'
-    area = 'toilet'
+    source = "rtsp://admin:WGNVQB@182.0.21.189:554/ch2/main"
+    pred_type = 'people_moving'
+    area = 'stb'
 
     if pred_type == 'people_moving':
         counting_region = config_people_moving.LOCATION_CONF[area]['region']

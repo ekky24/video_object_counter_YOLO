@@ -61,7 +61,7 @@ LOCATION_CONF = {
         'region': [
             {
                 "name": "stb_1",
-                "polygon": Polygon([(568, 715), (351, 268), (92, 262), (4, 361), (1, 712)]),  # Polygon points
+                "polygon": Polygon([(1, 706), (1, 342), (250, 123), (497, 138), (580, 707)]),  # Polygon points
                 "counts": 0,
                 "draggin": False,
                 "region_color": (37, 255, 255), # BGR value
@@ -69,7 +69,7 @@ LOCATION_CONF = {
             },
             {
                 "name": "stb_2",
-                "polygon": Polygon([(937, 707), (424, 257), (668, 246), (1270, 482), (1268, 706)]),  # Polygon points
+                "polygon": Polygon([(1269, 705), (1270, 358), (803, 143), (569, 142), (793, 708)]),  # Polygon points
                 "counts": 0,
                 "draggin": False,
                 "region_color": (37, 255, 255), # BGR value
